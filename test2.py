@@ -14,7 +14,7 @@ class serialInterface():
             [8, 'HOF', 'High Voltage Output OFF'], [9, 'HON', 'High Voltage Output ON'],
             [10, 'HRE', 'Power Supply Reset'],
             [11, 'HCM', 'Switching The Temperature Compensation Mode'],
-            [12, 'HBV', 'Reference Voltage self.temporary Setting']
+            [12, 'HBV', 'Reference Voltage Setting']
             ]
 
         print(tabulate(menu, headers=["\nNo.", "\nCommand Name", "\nFunction"]))
@@ -127,43 +127,28 @@ class serialInterface():
         self.STX_asc = hex(2)[2:]   #ASCII CODE FOR 'STX', 'ETX', AND 'CR'
         self.ETX_asc = hex(3)[2:]
         self.CR_asc = hex(13)[2].upper()
-        com_char1_asc = hex(ord(request_com[0]))[2:]   #ASCII CODE FOR THE 3 BYTES OF THE THREE-LETTER COMMAND
-        com_char2_asc = hex(ord(request_com[1]))[2:]
-        com_char3_asc = hex(ord(request_com[2]))[2:]
+        com_char1_asc = hex(ord(request_com[0]))[2:].upper()   #ASCII CODE FOR THE 3 BYTES OF THE THREE-LETTER COMMAND
+        com_char2_asc = hex(ord(request_com[1]))[2:].upper()
+        com_char3_asc = hex(ord(request_com[2]))[2:].upper()
 
-        if request_com in ["HRT", "HPO", "HGS", "HGV", "HGC", "HGT", "HOF", "HON", "HRE"]: #CREATES REQUEST HEXSTRING FOR COMMANDS WITH NO DATA
+        data_asc_sum = 0
+        for i in range(0, len(data), 2):
+            data_asc_sum += int(data[i:i + 2], 16)
 
-            check_sum = hex(
-                int(self.STX_asc, 16) + int(com_char1_asc, 16) + int(com_char2_asc, 16) + int(com_char3_asc, 16) +
-                int(self.ETX_asc, 16))
+        check_sum = hex(
+            int(self.STX_asc, 16) + int(com_char1_asc, 16) + int(com_char2_asc, 16) + int(com_char3_asc, 16) +
+            data_asc_sum + int(self.ETX_asc, 16))
 
-            last_two = str(hex(int(check_sum, 16) % int('1000', 16))[2:]).upper()
-            second_to_last = last_two[len(last_two) - 2]
-            last = last_two[len(last_two) - 1]
-            second_to_last_asc = hex(ord(second_to_last))[2:]
-            last_asc = hex(ord(last))[2:]
+        last_two = str(hex(int(check_sum, 16) % int('1000', 16))[2:]).upper()
+        second_to_last = last_two[len(last_two) - 2]
+        last = last_two[len(last_two) - 1]
+        second_to_last_asc = hex(ord(second_to_last))[2:]
+        last_asc = hex(ord(last))[2:]
 
-            request_hexstring = self.STX_asc + com_char1_asc + com_char2_asc + com_char3_asc + self.ETX_asc + second_to_last_asc + \
-                   last_asc + self.CR_asc
+        request_hexstring = self.STX_asc + com_char1_asc + com_char2_asc + com_char3_asc + data + self.ETX_asc +\
+                            second_to_last_asc + last_asc + self.CR_asc
 
-        if self.request_com == "HCM":
-            answer =  input("\nDo you want to enable or disable the temperature correction function? "
-                            "(Type 1 to enable ""or Type 0 to disable)")
-            answer_asc = hex(ord(answer))[2:]
-            check_sum = hex(
-                int(self.STX_asc, 16) + int(com_char1_asc, 16) + int(com_char2_asc, 16) + int(com_char3_asc, 16) +
-                int(answer_asc, 16) + int(self.ETX_asc, 16))
-
-            last_two = str(hex(int(check_sum, 16) % int('1000', 16))[2:]).upper()
-            second_to_last = last_two[len(last_two) - 2]
-            last = last_two[len(last_two) - 1]
-            second_to_last_asc = hex(ord(second_to_last))[2:]
-            last_asc = hex(ord(last))[2:]
-
-            request_hexstring = self.STX_asc + com_char1_asc + com_char2_asc + com_char3_asc + answer_asc + self.ETX_asc\
-                                + second_to_last_asc + last_asc + self.CR_asc
-
-
+        print(request_hexstring)
         return request_hexstring
 
 
@@ -279,9 +264,16 @@ class serialInterface():
             time.sleep(2)
 
     def tempcompMode(self):
-        temporary = self.decode()
-        if temporary[0] == "hcm":
-            print("You Successfully Switched")
+        request_com = self.request_com
+        answer = input("\nDo you want to enable or disable the temperature correction function? "
+                       "(Type 1 to enable ""or Type 0 to disable)")
+
+        data = hex(ord(answer))[2:]
+        request_hexstring = self.encode(request_com, data)
+        response_com_and_dataval = self.decode(request_hexstring)
+        if response_com_and_dataval[0] == "hcm":
+            print("\nYou Successfully Switched")
+            time.sleep(2)
 
     def commandsList(self):
         if self.request_com == 'HST':
@@ -307,6 +299,9 @@ class serialInterface():
 
         if self.request_com == 'HRE':
             self.resetPower()
+
+        if self.request_com == 'HCM':
+            self.tempcompMode()
 
     def run(self):
         while 1 > 0:

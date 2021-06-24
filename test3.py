@@ -1,9 +1,11 @@
 import random
 
-x = '0000'
-y = ''
 
-for i in range(4):
-     y += hex(ord(x[i:i+1]))[2:]
 
-print(y)
+answer = input("\nDo you want to enable or disable the temperature correction function? "
+                            "(Type 1 to enable ""or Type 0 to disable)")
+
+data = hex(ord(answer))[2:]
+
+
+
