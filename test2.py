@@ -319,7 +319,7 @@ class serialInterface():
         request_hexstring = self.encode(request_com, data)
         response_com_and_datastring = self.decode(request_hexstring)
         if response_com_and_datastring[0] == "hof":
-            print("High Voltage Output is OFF")
+            print("\nHigh Voltage Output is OFF")
             time.sleep(2)
 
     def turnvoltageON(self):
@@ -328,7 +328,7 @@ class serialInterface():
         request_hexstring = self.encode(request_com, data)
         response_com_and_datastring = self.decode(request_hexstring)
         if response_com_and_datastring[0] == "hon":
-            print("High Voltage Output is ON")
+            print("\nHigh Voltage Output is ON")
             time.sleep(2)
 
     def resetPower(self):
@@ -337,7 +337,7 @@ class serialInterface():
         request_hexstring = self.encode(request_com, data)
         response_com_and_datastring = self.decode(request_hexstring)
         if response_com_and_datastring[0] == "hre":
-            print("The Power Will Reset Shortly...")
+            print("\nThe Power Will Reset Shortly...")
             time.sleep(2)
 
     def tempcompMode(self):
