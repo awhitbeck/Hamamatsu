@@ -268,6 +268,70 @@ class serialInterface():
             status_dec = int(response_data_val, 16)
             status_bin = bin(status_dec)[2:]
             print("\n" + status_bin)
+
+            if status_bin[15] == '1':
+                status_bin_val_15 = 1
+                status_bin_des_15 = 'ON'
+            else:
+                status_bin_val_15 = 0
+                status_bin_des_15 = 'OFF'
+
+            if status_bin[14] == '1':
+                status_bin_val_14 = 1
+                status_bin_des_14 = 'Working Protection'
+            else:
+                status_bin_val_14 = 0
+                status_bin_des_14 = 'Not Working'
+
+            if status_bin[13] == '1':
+                status_bin_val_13 = 1
+                status_bin_des_13 = 'Outside Specification'
+            else:
+                status_bin_val_13 = 0
+                status_bin_des_13 = 'Within Specification'
+
+            if status_bin[12] == '1':
+                status_bin_val_12 = 1
+                status_bin_des_12 = 'Connect'
+            else:
+                status_bin_val_12 = 0
+                status_bin_des_12 = 'Disconnect'
+
+            if status_bin[11] == '1':
+                status_bin_val_11 = 1
+                status_bin_des_11 = 'Outside Specification'
+            else:
+                status_bin_val_11 = 0
+                status_bin_des_11 = 'Within Specification'
+
+            if status_bin[9] == '1':
+                status_bin_val_9 = 1
+                status_bin_des_9 = 'Effectiveness'
+            else:
+                status_bin_val_9 = 0
+                status_bin_des_9 = 'Invalid'
+
+            status_table = [
+                [0, 'High Voltage Output', status_bin_val_15, status_bin_des_15],
+                [1, 'Overcurrent Protection', status_bin_val_14, status_bin_des_14],
+                [2, 'Output Current Value', status_bin_val_13, status_bin_des_13],
+                [3, 'Temperature Sensor Connect', status_bin_val_12, status_bin_des_12],
+                [4, 'Operation Temperature Limit', status_bin_val_11, status_bin_des_11],
+                [5, 'Reserve 5', "_______", "_____________________"],
+                [6, 'Temperature Correction', status_bin_val_9, status_bin_des_9],
+                [7, 'Reserve 7', "_______", "_____________________"],
+                [8, 'Reserve 8', "_______", "_____________________"],
+                [9, 'Reserve 9', "_______", "_____________________"],
+                [10, 'Reserve 10', "_______", "_____________________"],
+                [11, 'Reserve 11', "_______", "_____________________"],
+                [12, 'Reserve 12', "_______", "_____________________"],
+                [13, 'Reserve 13', "_______", "_____________________"],
+                [14, 'Reserve 14', "_______", "_____________________"],
+                [15, 'Reserve 15', "_______", "_____________________"],
+
+            ]
+
+            print(tabulate(status_table, headers=["\nBit.", "\nStatus", "\nValue", "\nDescription"]))
             time.sleep(2)
 
     def voltageOut(self):
