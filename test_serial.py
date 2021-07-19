@@ -20,11 +20,16 @@ while True:
 
 
     if request_com == 'HRT':
-        request_hexstring = b'\x02\x48\x52\x54\x03\x46\x33\x0D'   #h02 h48 h52 h54 h03 h46 h33 h0D
+        request_hexstring = b'\x02\x48\x52\x54\x03\x46\x33\x0D' #h02 h48 h52 h54 h03 h46 h33 h0D
         ser.write(request_hexstring)
         response_ascii_string = ser.read(32)
         print(response_ascii_string)
 
+    if request_com == 'HPO':
+        request_hexstring = '\x02\x48\x50\x4F\x03\x45\x43\x0D' #h02 h48 h52 h54 h03 h46 h33 h0D
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = ser.read(32)
+        print(response_ascii_string)
 
 
 
@@ -39,7 +44,7 @@ while True:
         time.sleep(1)
 
     if request_com == 'HGV':
-        request_hexstring = b'\x02\x48\x47\x56\x03\x45\x41\x0D' #h02 h48 h47 h56 h03 h45 h41 h0D
+        request_hexstring = b'\x02\x48\x47\x56\x03\x45\x41\x0D' #h02 h48 h47 h56 h03 h45 h41 h0DHR
         ser.write(request_hexstring)
         response_ascii_string = ser.read(12)
         output_voltage_hex = str(response_ascii_string)[9:13]
@@ -89,6 +94,12 @@ while True:
         print(response_ascii_string)
         print("The Power Will Reset")
 
+    if request_com == 'HHH':
+        a = '\x02\x48'
+        request_hexstring = a + '\x47\x54\x03\x45\x38\x0D'
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = ser.read(12)
+        print(response_ascii_string)
 
 
 
