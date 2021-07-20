@@ -1,7 +1,10 @@
 from tabulate import tabulate
-import time
 import random
+import time
+import serial
 
+ser = serial.Serial('COM4', baudrate=38400, bytesize=serial.EIGHTBITS, parity=serial.PARITY_EVEN,
+                    stopbits=serial.STOPBITS_ONE, timeout=3)  # open serial port
 
 class serialInterface():
     def menu(self):
@@ -12,61 +15,116 @@ class serialInterface():
             [8, 'HOF', 'High Voltage Output OFF'], [9, 'HON', 'High Voltage Output ON'],
             [10, 'HRE', 'Power Supply Reset'],
             [11, 'HCM', 'Switching The Temperature Compensation Mode'],
-            [12, 'HBV', 'Reference Voltage Temporary Setting']
+            [12, 'HBV', 'Reference Voltage Setting']
             ]
 
         print(tabulate(menu, headers=["\nNo.", "\nCommand Name", "\nFunction"]))
 
-        self.com = input("\nENTER THE DESIRED COMMAND")
+        self.request_com = input("\nENTER THE DESIRED COMMAND")
 
     def set_values(self):
 
-        T_dec = random.randint(0, 65535)
-        T_hex = hex(T_dec)
-        self.T = (T_dec * 1.907 * 10 - 5 - 1.035) / (-5.5 * 10 - 3)
+        deltaPrime_T1 = float(input("\n Set a Δ\'T1 value (mV/°C^2)"))
+        while abs(deltaPrime_T1) > 1.507:
+            deltaPrime_T1 = float(input("\nInvalid value, input another value"))
+        deltaPrime_T1_dec = int(round(deltaPrime_T1 / (1.507 * 10 ** -3), 0))
+        deltaPrime_T1_hex = hex(deltaPrime_T1_dec)[2:]
+        if len(deltaPrime_T1_hex) < 4:
+            diff = 4 - len(deltaPrime_T1_hex)
+            for i in range(diff):
+                deltaPrime_T1_hex = '0' + deltaPrime_T1_hex
+        self.hexstring1 = ''
+        self.hexsum1 = '0'
+        for i in range(4):
+             self.hexstring1 += '\\x' + hex(ord(deltaPrime_T1_hex[i:i + 1]))[2:]
+             self.hexsum1 = hex(int(self.hexsum1, 16) + int(self.hexstring1[(len(self.hexstring1)-2):], 16))
 
-        self.deltaPrime_T1 = float(input("\n Set a Δ\'T1 value (mV/°C^2)"))
-        while abs(self.deltaPrime_T1) > 1.507:
-            self.deltaPrime_T1 = float(input("\nInvalid value, input another value"))
-        deltaPrime_T1_dec = int(round(self.deltaPrime_T1 / (1.507 * 10 ** -3), 0))
-        deltaPrime_T1_hex = hex(deltaPrime_T1_dec)
+        deltaPrime_T2 = float(input("\n Set a Δ\'T2 value (mV/°C^2)"))
+        while abs(deltaPrime_T2) > 1.507:
+            deltaPrime_T2 = float(input("\nInvalid value, input another value"))
+        deltaPrime_T2_dec = int(round(deltaPrime_T2 / (1.507 * 10 ** -3), 0))
+        deltaPrime_T2_hex = hex(deltaPrime_T2_dec)[2:]
+        if len(deltaPrime_T2_hex) < 4:
+            diff = 4 - len(deltaPrime_T2_hex)
+            for i in range(diff):
+                deltaPrime_T2_hex = '0' + deltaPrime_T2_hex
+        self.hexstring2 = ''
+        self.hexsum2 = '0'
+        for i in range(4):
+            self.hexstring2 += '\\x' + hex(ord(deltaPrime_T2_hex[i:i + 1]))[2:]
+            self.hexsum2 = hex(int(self.hexsum2, 16) + int(self.hexstring2[(len(self.hexstring2) - 2):], 16))
 
-        self.deltaPrime_T2 = float(input("\n Set a Δ\'T2 value (mV/°C^2)"))
-        while abs(self.deltaPrime_T2) > 1.507:
-            self.deltaPrime_T2 = float(input("\nInvalid value, input another value"))
-        deltaPrime_T2_dec = int(round(self.deltaPrime_T2 / (1.507 * 10 ** -3), 0))
-        deltaPrime_T2_hex = hex(deltaPrime_T2_dec)
+        delta_T1 = float(input("\n Set a ΔT1 value (mV/°C)"))
+        while delta_T1 < 0 or delta_T1 > 3424.20375:
+            delta_T1 = float(input("\nInvalid value, input another value"))
+        delta_T1_dec = int(round(delta_T1 / (5.225 * 10 ** -2), 0))
+        delta_T1_hex = hex(delta_T1_dec)[2:]
+        if len(delta_T1_hex) < 4:
+            diff = 4 - len(delta_T1_hex)
+            for i in range(diff):
+                delta_T1_hex = '0' + delta_T1_hex
+        self.hexstring3 = ''
+        self.hexsum3 = '0'
+        for i in range(4):
+            self.hexstring3 += '\\x' + hex(ord(delta_T1_hex[i:i + 1]))[2:]
+            self.hexsum3 = hex(int(self.hexsum3, 16) + int(self.hexstring3[(len(self.hexstring3) - 2):], 16))
 
-        self.delta_T1 = float(input("\n Set a ΔT1 value (mV/°C)"))
-        while self.delta_T1 < 0 or self.delta_T1 > 3424.20375:
-            self.delta_T1 = float(input("\nInvalid value, input another value"))
-        delta_T1_dec = int(round(self.delta_T1 / (5.225 * 10 ** -2), 0))
-        delta_T1_hex = hex(delta_T1_dec)
+        delta_T2 = float(input("\n Set a ΔT2 value (mV/°C)"))
+        while delta_T2 < 0 or delta_T2 > 3424.20375:
+            delta_T2 = float(input("\nInvalid value, input another value"))
+        delta_T2_dec = int(round(delta_T2 / (5.225 * 10 ** -2), 0))
+        delta_T2_hex = hex(delta_T2_dec)[2:]
+        if len(delta_T2_hex) < 4:
+            diff = 4 - len(delta_T2_hex)
+            for i in range(diff):
+                delta_T2_hex = '0' + delta_T2_hex
+        self.hexstring4 = ''
+        self.hexsum4 = '0'
+        for i in range(4):
+            self.hexstring4 += '\\x' + hex(ord(delta_T2_hex[i:i + 1]))[2:]
+            self.hexsum4 = hex(int(self.hexsum4, 16) + int(self.hexstring4[(len(self.hexstring4) - 2):], 16))
 
-        self.delta_T2 = float(input("\n Set a ΔT2 value (mV/°C)"))
-        while self.delta_T2 < 0 or self.delta_T2 > 3424.20375:
-            self.delta_T2 = float(input("\nInvalid value, input another value"))
-        delta_T2_dec = int(round(self.delta_T2 / (5.225 * 10 ** -2), 0))
-        delta_T2_hex = hex(delta_T2_dec)
 
-        self.Vb = float(input("\n Set a Vb value (V)"))
-        while self.Vb < 0 or self.Vb > 118.74942:
-            self.Vb = float(input("\nInvalid value, input another value"))
-        Vb_dec = int(round(self.Vb / (1.812 * 10 ** -3), 0))
-        Vb_hex = hex(Vb_dec)
+        Vb = float(input("\n Set a Vb value (V)"))
+        while Vb < 0 or Vb > 118.74942:
+            Vb = float(input("\nInvalid value, input another value"))
+        Vb_dec = int(round(Vb / (1.812 * 10 ** -3), 0))
+        Vb_hex = hex(Vb_dec)[2:]
+        if len(Vb_hex) < 4:
+            diff = 4 - len(Vb_hex)
+            for i in range(diff):
+                Vb_hex = '0' + Vb_hex
+        self.hexstring5 = ''
+        self.hexsum5 = '0'
+        for i in range(4):
+            self.hexstring5 += '\\x' + hex(ord(Vb_hex[i:i + 1]))[2:]
+            self.hexsum5 = hex(int(self.hexsum5, 16) + int(self.hexstring5[(len(self.hexstring5) - 2):], 16))
 
-        self.Tb = float(input("\n Set a Tb value (°C)"))
-        while self.Tb < -39.0459 or self.Tb > 188.1818:
-            self.Tb = float(input("\nInvalid value, input another value"))
-        Tb_dec = int(round((1.035 + (self.Tb * -5.5 * 10 ** -3)) / 1.907 * 10 ** -5, 0))
-        Tb_hex = hex(Tb_dec)
+        Tb = float(input("\n Set a Tb value (°C)"))
+        while Tb < -39.0459 or Tb > 188.1818:
+            Tb = float(input("\nInvalid value, input another value"))
+        Tb_dec = int(round((1.035 + (Tb * -5.5 * 10 ** -3)) / (1.907 * 10 ** -5), 0))
+        Tb_hex = hex(Tb_dec)[2:]
+        if len(Tb_hex) < 4:
+            diff = 4 - len(Tb_hex)
+            for i in range(diff):
+                Tb_hex = '0' + Tb_hex
+        self.hexstring6 = ''
+        self.hexsum6 = '0'
+        for i in range(4):
+            self.hexstring6 += '\\x' + hex(ord(Tb_hex[i:i + 1]))[2:]
+            self.hexsum6 = hex(int(self.hexsum6, 16) + int(self.hexstring6[(len(self.hexstring6) - 2):], 16))
+
+        self.hexstring = self.hexstring1 + self.hexstring2 + self.hexstring3 + self.hexstring4 + self.hexstring5 + self.hexstring6
+        self.hexsum = hex(int(self.hexsum1, 16) + int(self.hexsum2, 16) + int(self.hexsum3, 16) + int(self.hexsum4, 16)\
+                      + int(self.hexsum5, 16) + int(self.hexsum6, 16))
 
         print("\nThe Following Variables Have Been Set:")
 
         data = [
-            ['Δ\'T1', str(self.deltaPrime_T1) + ' mV/°C^2'], ['Δ\'T2', str(self.deltaPrime_T2) + ' mV/°C^2'],
-            ['ΔT1', str(self.delta_T1) + ' mV/°C'], ['ΔT2', str(self.delta_T2) + ' mV/°C'], ['Vb', str(self.Vb) + ' V'],
-            ['Tb', str(self.Tb) + ' °C']
+            ['Δ\'T1', str(deltaPrime_T1) + ' mV/°C^2'], ['Δ\'T2', str(deltaPrime_T2) + ' mV/°C^2'],
+            ['ΔT1', str(delta_T1) + ' mV/°C'], ['ΔT2', str(delta_T2) + ' mV/°C'], ['Vb', str(Vb) + ' V'],
+            ['Tb', str(Tb) + ' °C']
         ]
 
         print(tabulate(data, headers=["\nVariable", "\nUser Input Value"]))
@@ -75,175 +133,221 @@ class serialInterface():
             "\nDo these values make sense to you? (If not, type \"no\" to retype your values and if yes, type "
             "\"yes\" to confirm values)")
         if answer == "yes":
-            print("\nCool!")
+            return self.hexstring, self.hexsum
+
         elif answer == "no":
             self.set_values()
         else:
             print("\nInvalid Response")
 
-    def loop_10(self):
-        answer = input("Are you sure you want to reset the power?")
 
-        if answer == "yes":
-            print("The power will reset shortly")
-        elif answer == "no":
-            print("Going back to the menu...")
-        else:
-            print("Invalid answer")
-            self.loop_10()
+    def encode(self, request_com='', data=[]):
+        self.STX_asc = '\\x' + hex(2)[2:]   #ASCII CODE FOR 'STX', 'ETX', AND 'CR'
+        self.ETX_asc = '\\x' + hex(3)[2:]
+        self.CR_asc = '\\x' + hex(13)[2].upper()
+        com_char1_asc = '\\x' + hex(ord(request_com[0]))[2:].upper()   #ASCII CODE FOR THE 3 BYTES OF THE THREE-LETTER COMMAND
+        com_char2_asc = '\\x' + hex(ord(request_com[1]))[2:].upper()
+        com_char3_asc = '\\x' + hex(ord(request_com[2]))[2:].upper()
 
-    def output_0_1(self):
-        # Send Command
-        STX_asc = hex(2)
-        com_char1_asc = hex(ord(self.com[0]))
-        com_char2_asc = hex(ord(self.com[1]))
-        com_char3_asc = hex(ord(self.com[2]))
-        ETX_asc = hex(3)
+        data_asc_sum = data[1]
+
         check_sum = hex(
-            int(STX_asc, 16) + int(com_char1_asc, 16) + int(com_char2_asc, 16) + int(com_char3_asc, 16) + int(ETX_asc,
-                                                                                                              16))
-        CR_asc = hex(13)[0] + hex(13)[1] + hex(13)[2].upper()
+            int(self.STX_asc[2:], 16) + int(com_char1_asc[2:], 16) + int(com_char2_asc[2:], 16) + int(com_char3_asc[2:], 16) +
+            int(data_asc_sum, 16) + int(self.ETX_asc[2:], 16))
 
         last_two = str(hex(int(check_sum, 16) % int('1000', 16))[2:]).upper()
         second_to_last = last_two[len(last_two) - 2]
         last = last_two[len(last_two) - 1]
-        second_to_last_asc = hex(ord(second_to_last))
-        last_asc = hex(ord(last))
+        second_to_last_asc = '\\x' + hex(ord(second_to_last))[2:]
+        last_asc = '\\x' + hex(ord(last))[2:]
 
-        menu = [
-            ['ASCII Code', 'STX', self.com[0], self.com[1], self.com[2], "ETX", second_to_last, last, "CR"],
-            ['Size(Byte)', STX_asc, com_char1_asc, com_char2_asc, com_char3_asc, ETX_asc, second_to_last_asc, last_asc,
-             CR_asc]
+        request_hexstring = self.STX_asc + com_char1_asc + com_char2_asc + com_char3_asc + data[0] + self.ETX_asc +\
+                            second_to_last_asc + last_asc + self.CR_asc
+
+        #print(request_hexstring)
+        return request_hexstring
+
+
+
+    def decode(self, request_hexstring=''):
+        l = list(request_hexstring)
+        del (l[0])
+        del (l[-6:])
+        useful_hexstring = "".join(l)
+        response_com = ''
+        response_data_hexstring = ''
+
+        for i in range(0, len(useful_hexstring[0:6]), 2):
+            response_com += chr(int(useful_hexstring[i:i + 2], 16)).lower()
+
+
+        if response_com in ["hgs", "hgv", "hgt"]:
+            for i in range(4):
+                x = [random.randint(30, 39), random.randint(41, 46)]    #EXAMPLE response_data_hexstring = 30454139
+                response_data_hexstring += str(random.choice(x))
+
+        if response_com == "hgc":
+            for i in range(2):
+                x = [random.randint(30, 39), random.randint(41, 46)]
+                response_data_hexstring += str(random.choice(x))
+            response_data_hexstring = str(random.randint(30, 34)) + response_data_hexstring
+            if response_data_hexstring[0:2] == '34':
+                l = list(response_data_hexstring)
+                l[2] = '3'
+                l[3] = '0'
+                l[4] = '3'
+                l[5] = '0'
+                response_data_hexstring = "".join(l)
+            response_data_hexstring = '30' + response_data_hexstring
+
+        if response_com == "hrt":
+            response_data_hexstring = self.hexstring1 + self.hexstring2 + self.hexstring3 + self.hexstring4 + \
+                                      self.hexstring5 + self.hexstring6
+
+
+        return response_com, response_data_hexstring
+
+
+
+    def setsixVariables(self):
+        request_com = self.request_com
+        data = self.set_values()
+        request_hexstring = self.encode(request_com, data)
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = ser.read(8)
+        print(response_ascii_string)
+        time.sleep(2)
+
+    def readsixVariables(self):
+        request_com = self.request_com
+        request_hexstring = '\x02\x48\x52\x54\x03\x46\x33\x0D'
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = str(ser.read(32))
+        deltaPrimeT1_val = response_ascii_string[9:13]
+        deltaPrimeT2_val = response_ascii_string[13:17]
+        deltaT1_val = response_ascii_string[17:21]
+        deltaT2_val = response_ascii_string[21:25]
+        Vb_val = response_ascii_string[25:29]
+        Tb_val = response_ascii_string[29:33]
+
+        deltaPrimeT1_dec = int(deltaPrimeT1_val, 16)
+        deltaPrimeT1 = round(deltaPrimeT1_dec * 1.507 * 10 ** -3, 2)
+
+        deltaPrimeT2_dec = int(deltaPrimeT2_val, 16)
+        deltaPrimeT2 = round(deltaPrimeT2_dec * 1.507 * 10 ** -3, 2)
+
+        deltaT1_dec = int(deltaT1_val, 16)
+        deltaT1 = round(deltaT1_dec * 5.225 * 10 ** -2, 2)
+
+        deltaT2_dec = int(deltaT2_val, 16)
+        deltaT2 = round(deltaT2_dec * 5.225 * 10 ** -2, 2)
+
+        Vb_dec = int(Vb_val, 16)
+        Vb = round(Vb_dec * 1.812 * 10 ** -3, 2)
+
+        Tb_dec = int(Tb_val, 16)
+        Tb = round((Tb_dec * 1.907 * 10 ** -5 - 1.035) / (-5.5 * 10 ** -3), 2)
+
+        readData = [
+            ['Δ\'T1', str(deltaPrimeT1) + ' mV/°C^2'], ['Δ\'T2', str(deltaPrimeT2) + ' mV/°C^2'],
+            ['ΔT1', str(deltaT1) + ' mV/°C'], ['ΔT2', str(deltaT2) + ' mV/°C'],
+            ['Vb', str(Vb) + ' V'],
+            ['Tb', str(Tb) + ' °C']
         ]
+        print(tabulate(readData, headers=["\nVariable", "\nExisting Value"]))
 
-        print(tabulate(menu, headers=["\nSEND COMMAND", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n"]))
         time.sleep(2)
 
-        # -----------------------------------------------
+    def getmonitorinfoStatus(self):
+        request_com = self.request_com
+        request_hexstring = '\x02\x48\x50\x4F\x03\x45\x43\x0D'
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = str(ser.read(32))
+        status_val = response_ascii_string[9:13]
+        output_voltage_val = response_ascii_string[17:21]
+        output_current_val = response_ascii_string[21:25]
+        MPPC_temp_val = response_ascii_string[25:29]
 
-        # Response Command
-        data_string = hex(random.randint(int('0', 16), int('FFFF', 16)))[2:].upper()  # RETRIEVE THIS NUMBER FROM DEVICE
-        data_string_first = data_string[0]
-        data_string_second = data_string[1]
-        data_string_third = data_string[2]
-        com_char1_asc = hex(ord(self.com[0].lower()))
-        com_char2_asc = hex(ord(self.com[1].lower()))
-        com_char3_asc = hex(ord(self.com[2].lower()))
-        data_string_first_asc = hex(ord(data_string_first))
-        data_string_second_asc = hex(ord(data_string_second))
-        data_string_third_asc = hex(ord(data_string_third))
-        if len(data_string) == 4:
-            data_string_fourth = data_string[3]
-            data_string_fourth_asc = hex(ord(data_string_fourth))
-            check_sum = hex(
-                int(STX_asc, 16) + int(com_char1_asc, 16) + int(com_char2_asc, 16) + int(com_char3_asc, 16) + int(
-                    data_string_first_asc, 16)
-                + int(data_string_second_asc, 16) + int(data_string_third_asc, 16) + int(data_string_fourth_asc, 16)
-                + int(ETX_asc, 16))
-        else:
-            check_sum = hex(
-                int(STX_asc, 16) + int(com_char1_asc, 16) + int(com_char2_asc, 16) + int(com_char3_asc, 16) + int(
-                    data_string_first_asc, 16)
-                + int(data_string_second_asc, 16) + int(data_string_third_asc, 16) + int(ETX_asc, 16))
+        status_bin = bin(int(status_val, 16))[2:]
 
-        last_two = str(hex(int(check_sum, 16) % int('1000', 16))[2:]).upper()
-        second_to_last = last_two[len(last_two) - 2]
-        last = last_two[len(last_two) - 1]
-        second_to_last_asc = hex(ord(second_to_last))
-        last_asc = hex(ord(last))
+        output_voltage_dec = int(output_voltage_val, 16)
+        output_voltage = round(output_voltage_dec * 1.812 * 10 ** -3, 2)
 
-        if len(data_string) == 4:
-            menu = [
-                ['ASCII Code', 'STX', self.com[0].lower(), self.com[1].lower(), self.com[2].lower(), data_string_first,
-                 data_string_second, data_string_third,
-                 data_string_fourth, "ETX", second_to_last, last, "CR"],
-                ['Size(Byte)', STX_asc, com_char1_asc, com_char2_asc, com_char3_asc, data_string_first_asc,
-                 data_string_second_asc,
-                 data_string_third_asc, data_string_fourth_asc, ETX_asc, second_to_last_asc, last_asc, CR_asc]
-            ]
+        output_current_dec = int(output_current_val, 16)
+        output_current = round(output_current_dec * 4.980 * 10 ** -3, 2)
 
-            print(
-                tabulate(menu,
-                         headers=["\nRESPONSE COMMAND", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n",
-                                  "\n",
-                                  "\n"]))
-        else:
-            menu = [
-                ['ASCII Code', 'STX', self.com[0].lower(), self.com[1].lower(), self.com[2].lower(), data_string_first,
-                 data_string_second, data_string_third
-                    , "ETX", second_to_last, last, "CR"],
-                ['Size(Byte)', STX_asc, com_char1_asc, com_char2_asc, com_char3_asc, data_string_first_asc,
-                 data_string_second_asc,
-                 data_string_third_asc, ETX_asc, second_to_last_asc, last_asc, CR_asc]
-            ]
+        MPPC_temp_dec = int(MPPC_temp_val, 16)
+        MPPC_temp = round((MPPC_temp_dec * 1.907 * 10 ** -5 - 1.035) / (-5.5 * 10 ** -3), 2)
 
-            print(tabulate(menu,
-                           headers=["\nRESPONSE COMMAND", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n",
-                                    "\n"]))
+        readData = [
+            ['Status', str(status_bin)], ['Output Voltage', str(output_voltage) + 'V'],
+            ['Output Current', str(output_current) + 'mA'], ['MPPC Temperature', str(MPPC_temp) + '°C'],
+                   ]
+
+        print(tabulate(readData, headers=["\nVariable", "\nExisting Value"]))
+
         time.sleep(2)
 
-        # Translate Data
-        data_hex = data_string
-        data_dec = int(data_hex, 16)
-        if self.com == "HGS":  # OUTPUT STATUS
-            data = bin(data_dec)[2:]
-            if len(data) < 16:
-                diff = 16 - len(data)
-                for i in range(diff):
-                    data = '0' + data
-            print("\nThe binary value is " + data)
-            time.sleep(2)
 
-            if data[15] == '1':
-                data_val_15 = 1
-                data_des_15 = 'ON'
-            else:
-                data_val_15 = 0
-                data_des_15 = 'OFF'
+    def getStatus(self):
+        request_com = self.request_com
+        request_hexstring = '\x02\x48\x47\x53\x03\x45\x37\x0D'
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = str(ser.read(12))
+        output_status_hex = response_ascii_string[9:13]
+        status_bin = bin(int(output_status_hex, 16))[2:]
+        print("\n" + status_bin)
 
-            if data[14] == '1':
-                data_val_14 = 1
-                data_des_14 = 'Working Protection'
-            else:
-                data_val_14 = 0
-                data_des_14 = 'Not Working'
+        if status_bin[6] == '1':
+            status_bin_val_6 = 1
+            status_bin_des_6 = 'ON'
+        else:
+            status_bin_val_6 = 0
+            status_bin_des_6 = 'OFF'
 
-            if data[13] == '1':
-                data_val_13 = 1
-                data_des_13 = 'Outside Specification'
-            else:
-                data_val_13 = 0
-                data_des_13 = 'Within Specification'
+        if status_bin[5] == '1':
+            status_bin_val_5 = 1
+            status_bin_des_5 = 'Working Protection'
+        else:
+            status_bin_val_5 = 0
+            status_bin_des_5 = 'Not Working'
 
-            if data[12] == '1':
-                data_val_12 = 1
-                data_des_12 = 'Connect'
-            else:
-                data_val_12 = 0
-                data_des_12 = 'Disconnect'
+        if status_bin[4] == '1':
+            status_bin_val_4 = 1
+            status_bin_des_4 = 'Outside Specification'
+        else:
+            status_bin_val_4 = 0
+            status_bin_des_4 = 'Within Specification'
 
-            if data[11] == '1':
-                data_val_11 = 1
-                data_des_11 = 'Outside Specification'
-            else:
-                data_val_11 = 0
-                data_des_11 = 'Within Specification'
+        if status_bin[3] == '1':
+            status_bin_val_3 = 1
+            status_bin_des_3 = 'Connect'
+        else:
+            status_bin_val_3 = 0
+            status_bin_des_3 = 'Disconnect'
 
-            if data[9] == '1':
-                data_val_9 = 1
-                data_des_9 = 'Effectiveness'
-            else:
-                data_val_9 = 0
-                data_des_9 = 'Invalid'
+        if status_bin[2] == '1':
+            status_bin_val_2 = 1
+            status_bin_des_2 = 'Outside Specification'
+        else:
+            status_bin_val_2 = 0
+            status_bin_des_2 = 'Within Specification'
 
-            status_table = [
-                [0, 'High Voltage Output', data_val_15, data_des_15],
-                [1, 'Overcurrent Protection', data_val_14, data_des_14],
-                [2, 'Output Current Value', data_val_13, data_des_13],
-                [3, 'Temperature Sensor Connect', data_val_12, data_des_12],
-                [4, 'Operation Temperature Limit', data_val_11, data_des_11],
+        if status_bin[0] == '1':
+            status_bin_val_0 = 1
+            status_bin_des_0 = 'Effectiveness'
+        else:
+            status_bin_val_0 = 0
+            status_bin_des_0 = 'Invalid'
+
+        status_table = [
+                [0, 'High Voltage Output', status_bin_val_6, status_bin_des_6],
+                [1, 'Overcurrent Protection', status_bin_val_5, status_bin_des_5],
+                [2, 'Output Current Value', status_bin_val_4, status_bin_des_4],
+                [3, 'Temperature Sensor Connect', status_bin_val_3, status_bin_des_3],
+                [4, 'Operation Temperature Limit', status_bin_val_2, status_bin_des_2],
                 [5, 'Reserve 5', "_______", "_____________________"],
-                [6, 'Temperature Correction', data_val_9, data_des_9],
+                [6, 'Temperature Correction', status_bin_val_0, status_bin_des_0],
                 [7, 'Reserve 7', "_______", "_____________________"],
                 [8, 'Reserve 8', "_______", "_____________________"],
                 [9, 'Reserve 9', "_______", "_____________________"],
@@ -254,258 +358,140 @@ class serialInterface():
                 [14, 'Reserve 14', "_______", "_____________________"],
                 [15, 'Reserve 15', "_______", "_____________________"],
 
+                      ]
 
-            ]
-
-            print(tabulate(status_table, headers=["\nBit.", "\nStatus", "\nValue", "\nDescription"]))
-
-
-        if self.com == "HGV":  # OUTPUT VOLTAGE
-            data = round(data_dec * 1.812 * 10 ** -3, 2)
-            print("\nThe Output Voltage is " + str(data) + "V")
-
-        if self.com == "HGC":  # OUTPUT CURRENT
-            data = round(data_dec * 4.980 * 10 ** -3, 2)
-            print("\nThe Output Current is " + str(data) + "mA")
-
-        if self.com == "HGT":  # OUTPUT MPPC TEMPERATURE:
-            data = round((data_dec * 1.907 * 10 ** -5 - 1.035) / (-5.5 * 10 ** -3), 2)
-            print("\nThe Output MPPC Temperature is " + str(data) + "°C")
-
+        print(tabulate(status_table, headers=["\nBit.", "\nStatus", "\nValue", "\nDescription"]))
         time.sleep(2)
 
-    def output_0_0(self):
-        # Send Command
-
-        STX_asc = hex(2)
-        com_char1_asc = hex(ord(self.com[0]))
-        com_char2_asc = hex(ord(self.com[1]))
-        com_char2_asc = com_char2_asc[0:3] + com_char2_asc[3].upper()
-        com_char3_asc = hex(ord(self.com[2]))
-        com_char3_asc = com_char3_asc[0:3] + com_char3_asc[3].upper()
-        ETX_asc = hex(3)
-        check_sum = hex(
-            int(STX_asc, 16) + int(com_char1_asc, 16) + int(com_char2_asc, 16) + int(com_char3_asc, 16) + int(ETX_asc,
-                                                                                                              16))
-        CR_asc = hex(13)[0] + hex(13)[1] + hex(13)[2].upper()
-
-        last_two = str(hex(int(check_sum, 16) % int('1000', 16))[2:]).upper()
-        second_to_last = last_two[len(last_two) - 2]
-        last = last_two[len(last_two) - 1]
-        second_to_last_asc = hex(ord(second_to_last))
-        last_asc = hex(ord(last))
-
-        menu = [
-            ['ASCII Code', 'STX', self.com[0], self.com[1], self.com[2], "ETX", second_to_last, last, "CR"],
-            ['Size(Byte)', STX_asc, com_char1_asc, com_char2_asc, com_char3_asc, ETX_asc, second_to_last_asc, last_asc,
-             CR_asc]
-        ]
-
-        print(tabulate(menu, headers=["\nSEND COMMAND", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n"]))
+    def voltageOut(self):
+        request_hexstring = '\x02\x48\x47\x56\x03\x45\x41\x0D'  #h02 h48 h47 h56 h03 h45 h41 h0D
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = ser.read(12)
+        output_voltage_hex = str(response_ascii_string)[9:13]
+        output_voltage = round(int(output_voltage_hex, 16) * 1.812 * 10 ** -3, 2)
+        print(str(output_voltage) + "V")
         time.sleep(2)
 
-        # -----------------------------------------------
 
-        # Response Command
-        com_char1_asc = hex(ord(self.com[0].lower()))
-        com_char2_asc = hex(ord(self.com[1].lower()))
-        com_char2_asc = com_char2_asc[0:3] + com_char2_asc[3].upper()
-        com_char3_asc = hex(ord(self.com[2].lower()))
-        com_char3_asc = com_char3_asc[0:3] + com_char3_asc[3].upper()
-
-
-        check_sum = hex(
-            int(STX_asc, 16) + int(com_char1_asc, 16) + int(com_char2_asc, 16) + int(com_char3_asc, 16) + int(ETX_asc,
-                                                                                                              16))
-        last_two = str(hex(int(check_sum, 16) % int('1000', 16))[2:]).upper()
-        second_to_last = last_two[len(last_two) - 2]
-        last = last_two[len(last_two) - 1]
-        second_to_last_asc = hex(ord(second_to_last))
-        last_asc = hex(ord(last))
-
-        menu = [
-            ['ASCII Code', 'STX', self.com[0].lower(), self.com[1].lower(), self.com[2].lower(), "ETX", second_to_last,
-             last, "CR"],
-            ['Size(Byte)', STX_asc, com_char1_asc, com_char2_asc, com_char3_asc, ETX_asc, second_to_last_asc, last_asc,
-             CR_asc]
-        ]
-
-        print(tabulate(menu, headers=["\nRESPONSE COMMAND", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n"]))
+    def currentOut(self):
+        request_hexstring = '\x02\x48\x47\x43\x03\x44\x37\x0D'  # h02 h48 h47 h43 h03 h44 h37 h0D
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = ser.read(12)
+        output_current_hex = str(response_ascii_string)[9:13]
+        output_current = round(int(output_current_hex, 16) * 4.980 * 10 ** -3, 2)
+        print(str(output_current) + "mA")
         time.sleep(2)
 
-        if self.com == "HOF":
-            print("\nThe High Voltage Output is OFF")
-        if self.com == "HON":
-            print("\nThe High Voltage Output is ON")
-        if self.com == "HRE":
-            print("\nThe Power Will Reset Shortly...")
+    def MPPCOUT(self):
+        request_hexstring = '\x02\x48\x47\x54\x03\x45\x38\x0D'  # h02 h48 h47 h54 h03 h45 h38 h0D
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = ser.read(12)
+        output_MPPCtemp_hex = str(response_ascii_string)[9:13]
+        output_MPPCtemp = round((int(output_MPPCtemp_hex, 16) * 1.907 * 10 ** -5 - 1.035) / (-5.5 * 10 ** -3), 2)
+        print(str(output_MPPCtemp) + "°C")
         time.sleep(2)
 
-    def output_1_0(self):
-        STX_asc = hex(2)
-        ETX_asc = hex(3)
-        CR_asc = hex(13)[0] + hex(13)[1] + hex(13)[2].upper()
-        if self.com == "HCM":
-            data = int(input("\nDo you want to enable or disable the temperature correction function? (Type 1 to enable "
-                             "or Type 0 to disable)"))
+    def turnvoltageOFF(self):
+        request_hexstring = '\x02\x48\x4F\x46\x03\x45\x32\x0D'  # h02 h48 h4F h46 h03 h45 h32 h0D
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = ser.read(12)
+        print(response_ascii_string)
+        print("High Voltage Output is OFF")
 
-            com_char1_asc = hex(ord(self.com[0]))
-            com_char2_asc = hex(ord(self.com[1]))
-            com_char3_asc = hex(ord(self.com[2]))
-            com_char3_asc = com_char3_asc[0:3] + com_char3_asc[3].upper()
-            data_asc = hex(ord(str(data)))
-            check_sum = hex(
-                int(STX_asc, 16) + int(com_char1_asc, 16) + int(com_char2_asc, 16) + int(com_char3_asc, 16) +
-                int(data_asc, 16) + int(ETX_asc, 16))
+    def turnvoltageON(self):
+        request_hexstring = '\x02\x48\x4F\x4E\x03\x45\x41\x0D'  # h02 h48 h4F h4E h03 h45 h41 h0D
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = ser.read(12)
+        print(response_ascii_string)
+        print("High Voltage Output is ON")
 
+    def resetPower(self):
+        request_hexstring = '\x02\x48\x52\x45\x03\x45\x34\x0D'  # h02 h48 h52 h45 h03 h45 h34 h0D
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = ser.read(12)
+        print(response_ascii_string)
+        print("The Power Will Reset")
 
-            last_two = str(hex(int(check_sum, 16) % int('1000', 16))[2:]).upper()
-            second_to_last = last_two[len(last_two) - 2]
-            last = last_two[len(last_two) - 1]
-            second_to_last_asc = hex(ord(second_to_last))
-            last_asc = hex(ord(last))
+    def tempcompMode(self):
+        request_com = self.request_com
+        answer = input("\nDo you want to enable or disable the temperature correction function? "
+                       "(Type 1 to enable ""or Type 0 to disable)")
 
-            menu = [
-                      ['ASCII Code', 'STX', self.com[0], self.com[1], self.com[2], data, "ETX", second_to_last, last, "CR"],
-                      ['Size(Byte)', STX_asc, com_char1_asc, com_char2_asc, com_char3_asc, data_asc, ETX_asc,
-                        second_to_last_asc, last_asc, CR_asc]
-                   ]
+        if answer == '0':
+            request_hexstring = '\x02\x48\x43\x4D\x30\x03\x30\x44\x0D'  # h02 h48 h43 h4D h30 h03 h30 h44 h0D
+            ser.write(request_hexstring.encode('utf-8'))
+        if answer == '1':
+            request_hexstring = '\x02\x48\x43\x4D\x31\x03\x30\x45\x0D'  # h02 h48 h43 h4D h31 h03 h30 h45 h0D
+            ser.write(request_hexstring.encode('utf-8'))
 
-            print(tabulate(menu,
-                           headers=["\nSEND COMMAND", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n",
-                                    "\n"]))
-            time.sleep(2)
-
-
-        if self.com == "HBV":
-            self.Vb = float(input("\n Set a Reference Voltage value (V)"))
-            while self.Vb < 0 or self.Vb > 118.74942:
-                self.Vb = float(input("\nInvalid value, input another value"))
-            Vb_dec = int(round(self.Vb / (1.812 * 10 ** -3), 0))
-            Vb_hex = hex(Vb_dec).upper()
-
-            data_string = str(Vb_hex[2:])
-            data_string_first = data_string[0]
-            data_string_second = data_string[1]
-            data_string_third = data_string[2]
-            data_string_fourth = data_string[3]
-            data_string_first_asc = hex(ord(data_string_first))
-            data_string_second_asc = hex(ord(data_string_second))
-            data_string_third_asc = hex(ord(data_string_third))
-            data_string_fourth_asc = hex(ord(data_string_fourth))
-            com_char1_asc = hex(ord(self.com[0]))
-            com_char2_asc = hex(ord(self.com[1]))
-            com_char3_asc = hex(ord(self.com[2]))
-            check_sum = hex(
-                int(STX_asc, 16) + int(com_char1_asc, 16) + int(com_char2_asc, 16) + int(com_char3_asc, 16) +
-                int(data_string_first_asc, 16) + int(data_string_second_asc, 16) + int(data_string_third_asc, 16) +
-                int(data_string_fourth_asc, 16) + int(ETX_asc, 16))
-
-            last_two = str(hex(int(check_sum, 16) % int('1000', 16))[2:]).upper()
-            second_to_last = last_two[len(last_two) - 2]
-            last = last_two[len(last_two) - 1]
-            second_to_last_asc = hex(ord(second_to_last))
-            last_asc = hex(ord(last))
-
-            menu = [
-                ['ASCII Code', 'STX', self.com[0], self.com[1], self.com[2], data_string_first, data_string_second,
-                 data_string_third, data_string_fourth, "ETX", second_to_last, last, "CR"],
-                ['Size(Byte)', STX_asc, com_char1_asc, com_char2_asc, com_char3_asc, data_string_first_asc,
-                 data_string_second_asc, data_string_third_asc, data_string_fourth_asc, ETX_asc, second_to_last_asc,
-                 last_asc, CR_asc]
-                   ]
-
-            print(tabulate(menu,
-                           headers=["\nSEND COMMAND", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n",
-                                    "\n", "\n"]))
-            time.sleep(2)
-
-        # --------------------------------------------------------
-        # RESPONSE
-
-        com_char1_asc = hex(ord(self.com[0].lower()))
-        com_char2_asc = hex(ord(self.com[1].lower()))
-        com_char3_asc = hex(ord(self.com[2].lower()))
-        com_char3_asc = com_char3_asc[0:3] + com_char3_asc[3].upper()
-
-        check_sum = hex(int(STX_asc, 16) + int(com_char1_asc, 16) + int(com_char2_asc, 16) + int(com_char3_asc, 16)
-                            + int(ETX_asc, 16))
-
-        last_two = str(hex(int(check_sum, 16) % int('1000', 16))[2:]).upper()
-        second_to_last = last_two[len(last_two) - 2]
-        last = last_two[len(last_two) - 1]
-        second_to_last_asc = hex(ord(second_to_last))
-        last_asc = hex(ord(last))
-
-        menu = [
-            ['ASCII Code', 'STX', self.com[0].lower(), self.com[1].lower(), self.com[2].lower(), "ETX",
-             second_to_last, last, "CR"],
-            ['Size(Byte)', STX_asc, com_char1_asc, com_char2_asc, com_char3_asc, ETX_asc, second_to_last_asc,
-            last_asc, CR_asc]
-               ]
-
-        print(tabulate(menu,headers=["\nRESPONSE COMMAND", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n",
-                "\n", "\n"]))
+        response_ascii_string = str(ser.read(12))
+        print(response_ascii_string)
         time.sleep(2)
 
-    def commands(self):
-        if self.com == 'HST':
-            self.set_values()
-            time.sleep(2)
+    def referencevoltageSetting(self):
+        request_com = self.request_com
+        Vb = float(input("\n Set a Vb value (V)"))
+        while Vb < 0 or Vb > 118.74942:
+            Vb = float(input("\nInvalid value, input another value"))
+        Vb_dec = int(round(Vb / (1.812 * 10 ** -3), 0))
+        Vb_hex = hex(Vb_dec)[2:]
+        if len(Vb_hex) < 4:
+            diff = 4 - len(Vb_hex)
+            for i in range(diff):
+                Vb_hex = '0' + Vb_hex
+        self.hexstring5 = ''
+        self.hexsum5 = '0'
+        for i in range(4):
+            self.hexstring5 += '\\x' + hex(ord(Vb_hex[i:i + 1]))[2:]
+            self.hexsum5 = hex(int(self.hexsum5, 16) + int(self.hexstring5[(len(self.hexstring5) - 2):], 16))
 
-        if self.com == 'HRT':
-            data = [
-                ['Δ\'T1', str(self.deltaPrime_T1) + ' mV/°C^2'], ['Δ\'T2', str(self.deltaPrime_T2) + ' mV/°C^2'],
-                ['ΔT1', str(self.delta_T1) + ' mV/°C'], ['ΔT2', str(self.delta_T2) + ' mV/°C'],
-                ['Vb', str(self.Vb) + ' V'],
-                ['Tb', str(self.Tb) + ' °C']
-            ]
-            print(tabulate(data, headers=["\nVariable", "\nExisting Value"]))
-            time.sleep(2)
+        data = [self.hexstring5, self.hexsum5]
+        request_hexstring = self.encode(request_com, data)
+        ser.write(request_hexstring.encode('utf-8'))
+        response_ascii_string = ser.read(8)
+        print(response_ascii_string)
+        time.sleep(2)
 
-        if self.com == 'HPO':
-            data = [
-                ['Status', "..."], ['Reserve', '...'],
-                ['Output Voltage', '...'], ['Output Current', '...'], ['MPPC Temperature', '...']
-            ]
-            print(tabulate(data, headers=["\nVariable", "\nValue"]))
-            time.sleep(2)
+    def commandsList(self):
+        if self.request_com == 'HST':
+            self.setsixVariables()
 
-        if self.com == 'HGS':
-            self.output_0_1()
+        if self.request_com == 'HRT':
+            self.readsixVariables()
 
-        if self.com == 'HGV':
-            self.output_0_1()
+        if self.request_com == 'HPO':
+            self.getmonitorinfoStatus()
 
-        if self.com == 'HGC':
-            self.output_0_1()
+        if self.request_com == 'HGS':
+            self.getStatus()
 
-        if self.com == 'HGT':
-            self.output_0_1()
+        if self.request_com == 'HGV':
+            self.voltageOut()
 
-        if self.com == 'HOF':
-            self.output_0_0()
+        if self.request_com == 'HGC':
+            self.currentOut()
 
-        if self.com == 'HON':
-            self.output_0_0()
+        if self.request_com == 'HGT':
+            self.MPPCOUT()
 
-        if self.com == 'HRE':
-            self.output_0_0()
+        if self.request_com == 'HOF':
+            self.turnvoltageOFF()
 
-        if self.com == 'HCM':
-            self.output_1_0()
+        if self.request_com == 'HON':
+            self.turnvoltageON()
 
-        if self.com == "HBV":
-            self.output_1_0()
+        if self.request_com == 'HRE':
+            self.resetPower()
+
+        if self.request_com == 'HCM':
+            self.tempcompMode()
 
     def run(self):
         while 1 > 0:
             self.menu()
-            self.commands()
+            self.commandsList()
 
 
 test = serialInterface()
 
 test.run()
-
-
