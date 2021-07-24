@@ -36,7 +36,7 @@ class serialInterface():
         self.hexstring1 = ''
         self.hexsum1 = '0'
         for i in range(4):
-             self.hexstring1 += '\\x' + hex(ord(deltaPrime_T1_hex[i:i + 1]))[2:]
+             self.hexstring1 += hex(ord(deltaPrime_T1_hex[i:i + 1]))[2:]
              self.hexsum1 = hex(int(self.hexsum1, 16) + int(self.hexstring1[(len(self.hexstring1)-2):], 16))
 
         deltaPrime_T2 = float(input("\n Set a Δ\'T2 value (mV/°C^2)"))
@@ -51,7 +51,7 @@ class serialInterface():
         self.hexstring2 = ''
         self.hexsum2 = '0'
         for i in range(4):
-            self.hexstring2 += '\\x' + hex(ord(deltaPrime_T2_hex[i:i + 1]))[2:]
+            self.hexstring2 += hex(ord(deltaPrime_T2_hex[i:i + 1]))[2:]
             self.hexsum2 = hex(int(self.hexsum2, 16) + int(self.hexstring2[(len(self.hexstring2) - 2):], 16))
 
         delta_T1 = float(input("\n Set a ΔT1 value (mV/°C)"))
@@ -66,7 +66,7 @@ class serialInterface():
         self.hexstring3 = ''
         self.hexsum3 = '0'
         for i in range(4):
-            self.hexstring3 += '\\x' + hex(ord(delta_T1_hex[i:i + 1]))[2:]
+            self.hexstring3 += hex(ord(delta_T1_hex[i:i + 1]))[2:]
             self.hexsum3 = hex(int(self.hexsum3, 16) + int(self.hexstring3[(len(self.hexstring3) - 2):], 16))
 
         delta_T2 = float(input("\n Set a ΔT2 value (mV/°C)"))
@@ -81,7 +81,7 @@ class serialInterface():
         self.hexstring4 = ''
         self.hexsum4 = '0'
         for i in range(4):
-            self.hexstring4 += '\\x' + hex(ord(delta_T2_hex[i:i + 1]))[2:]
+            self.hexstring4 += hex(ord(delta_T2_hex[i:i + 1]))[2:]
             self.hexsum4 = hex(int(self.hexsum4, 16) + int(self.hexstring4[(len(self.hexstring4) - 2):], 16))
 
 
@@ -97,7 +97,7 @@ class serialInterface():
         self.hexstring5 = ''
         self.hexsum5 = '0'
         for i in range(4):
-            self.hexstring5 += '\\x' + hex(ord(Vb_hex[i:i + 1]))[2:]
+            self.hexstring5 += hex(ord(Vb_hex[i:i + 1]))[2:]
             self.hexsum5 = hex(int(self.hexsum5, 16) + int(self.hexstring5[(len(self.hexstring5) - 2):], 16))
 
         Tb = float(input("\n Set a Tb value (°C)"))
@@ -112,7 +112,7 @@ class serialInterface():
         self.hexstring6 = ''
         self.hexsum6 = '0'
         for i in range(4):
-            self.hexstring6 += '\\x' + hex(ord(Tb_hex[i:i + 1]))[2:]
+            self.hexstring6 += hex(ord(Tb_hex[i:i + 1]))[2:]
             self.hexsum6 = hex(int(self.hexsum6, 16) + int(self.hexstring6[(len(self.hexstring6) - 2):], 16))
 
         self.hexstring = self.hexstring1 + self.hexstring2 + self.hexstring3 + self.hexstring4 + self.hexstring5 + self.hexstring6
@@ -142,24 +142,24 @@ class serialInterface():
 
 
     def encode(self, request_com='', data=[]):
-        self.STX_asc = '\\x' + hex(2)[2:]   #ASCII CODE FOR 'STX', 'ETX', AND 'CR'
-        self.ETX_asc = '\\x' + hex(3)[2:]
-        self.CR_asc = '\\x' + hex(13)[2].upper()
-        com_char1_asc = '\\x' + hex(ord(request_com[0]))[2:].upper()   #ASCII CODE FOR THE 3 BYTES OF THE THREE-LETTER COMMAND
-        com_char2_asc = '\\x' + hex(ord(request_com[1]))[2:].upper()
-        com_char3_asc = '\\x' + hex(ord(request_com[2]))[2:].upper()
+        self.STX_asc = str(0) + hex(2)[2:]   #ASCII CODE FOR 'STX', 'ETX', AND 'CR'
+        self.ETX_asc = str(0) + hex(3)[2:]
+        self.CR_asc = str(0) + hex(13)[2].upper()
+        com_char1_asc = hex(ord(request_com[0]))[2:].upper()   #ASCII CODE FOR THE 3 BYTES OF THE THREE-LETTER COMMAND
+        com_char2_asc = hex(ord(request_com[1]))[2:].upper()
+        com_char3_asc = hex(ord(request_com[2]))[2:].upper()
 
         data_asc_sum = data[1]
 
         check_sum = hex(
-            int(self.STX_asc[2:], 16) + int(com_char1_asc[2:], 16) + int(com_char2_asc[2:], 16) + int(com_char3_asc[2:], 16) +
-            int(data_asc_sum, 16) + int(self.ETX_asc[2:], 16))
+            int(self.STX_asc, 16) + int(com_char1_asc, 16) + int(com_char2_asc, 16) + int(com_char3_asc, 16) +
+            int(data_asc_sum, 16) + int(self.ETX_asc, 16))
 
         last_two = str(hex(int(check_sum, 16) % int('1000', 16))[2:]).upper()
         second_to_last = last_two[len(last_two) - 2]
         last = last_two[len(last_two) - 1]
-        second_to_last_asc = '\\x' + hex(ord(second_to_last))[2:]
-        last_asc = '\\x' + hex(ord(last))[2:]
+        second_to_last_asc = hex(ord(second_to_last))[2:]
+        last_asc = hex(ord(last))[2:]
 
         request_hexstring = self.STX_asc + com_char1_asc + com_char2_asc + com_char3_asc + data[0] + self.ETX_asc +\
                             second_to_last_asc + last_asc + self.CR_asc
@@ -167,61 +167,20 @@ class serialInterface():
         #print(request_hexstring)
         return request_hexstring
 
-
-
-    def decode(self, request_hexstring=''):
-        l = list(request_hexstring)
-        del (l[0])
-        del (l[-6:])
-        useful_hexstring = "".join(l)
-        response_com = ''
-        response_data_hexstring = ''
-
-        for i in range(0, len(useful_hexstring[0:6]), 2):
-            response_com += chr(int(useful_hexstring[i:i + 2], 16)).lower()
-
-
-        if response_com in ["hgs", "hgv", "hgt"]:
-            for i in range(4):
-                x = [random.randint(30, 39), random.randint(41, 46)]    #EXAMPLE response_data_hexstring = 30454139
-                response_data_hexstring += str(random.choice(x))
-
-        if response_com == "hgc":
-            for i in range(2):
-                x = [random.randint(30, 39), random.randint(41, 46)]
-                response_data_hexstring += str(random.choice(x))
-            response_data_hexstring = str(random.randint(30, 34)) + response_data_hexstring
-            if response_data_hexstring[0:2] == '34':
-                l = list(response_data_hexstring)
-                l[2] = '3'
-                l[3] = '0'
-                l[4] = '3'
-                l[5] = '0'
-                response_data_hexstring = "".join(l)
-            response_data_hexstring = '30' + response_data_hexstring
-
-        if response_com == "hrt":
-            response_data_hexstring = self.hexstring1 + self.hexstring2 + self.hexstring3 + self.hexstring4 + \
-                                      self.hexstring5 + self.hexstring6
-
-
-        return response_com, response_data_hexstring
-
-
-
     def setsixVariables(self):
         request_com = self.request_com
         data = self.set_values()
         request_hexstring = self.encode(request_com, data)
-        ser.write(request_hexstring.encode('utf-8'))
+        bytestring = bytearray.fromhex(request_hexstring)
+        ser.write(bytestring)
         response_ascii_string = ser.read(8)
         print(response_ascii_string)
         time.sleep(2)
 
     def readsixVariables(self):
-        request_com = self.request_com
-        request_hexstring = '\x02\x48\x52\x54\x03\x46\x33\x0D'
-        ser.write(request_hexstring.encode('utf-8'))
+        request_hexstring = '024852540346330D'
+        bytestring = bytearray.fromhex(request_hexstring)
+        ser.write(bytestring)
         response_ascii_string = str(ser.read(32))
         deltaPrimeT1_val = response_ascii_string[9:13]
         deltaPrimeT2_val = response_ascii_string[13:17]
@@ -259,9 +218,9 @@ class serialInterface():
         time.sleep(2)
 
     def getmonitorinfoStatus(self):
-        request_com = self.request_com
-        request_hexstring = '\x02\x48\x50\x4F\x03\x45\x43\x0D'
-        ser.write(request_hexstring.encode('utf-8'))
+        request_hexstring = '0248504F0345430D'
+        bytestring = bytearray.fromhex(request_hexstring)
+        ser.write(request_hexstring)
         response_ascii_string = str(ser.read(32))
         status_val = response_ascii_string[9:13]
         output_voltage_val = response_ascii_string[17:21]
@@ -290,9 +249,9 @@ class serialInterface():
 
 
     def getStatus(self):
-        request_com = self.request_com
-        request_hexstring = '\x02\x48\x47\x53\x03\x45\x37\x0D'
-        ser.write(request_hexstring.encode('utf-8'))
+        request_hexstring = '024847530345370D'
+        bytestring = bytearray.fromhex(request_hexstring)
+        ser.write(bytestring)
         response_ascii_string = str(ser.read(12))
         output_status_hex = response_ascii_string[9:13]
         status_bin = bin(int(output_status_hex, 16))[2:]
@@ -364,8 +323,9 @@ class serialInterface():
         time.sleep(2)
 
     def voltageOut(self):
-        request_hexstring = '\x02\x48\x47\x56\x03\x45\x41\x0D'  #h02 h48 h47 h56 h03 h45 h41 h0D
-        ser.write(request_hexstring.encode('utf-8'))
+        request_hexstring = '024847560345410D'  #h02 h48 h47 h56 h03 h45 h41 h0D
+        bytestring = bytearray.fromhex(request_hexstring)
+        ser.write(bytestring)
         response_ascii_string = ser.read(12)
         output_voltage_hex = str(response_ascii_string)[9:13]
         output_voltage = round(int(output_voltage_hex, 16) * 1.812 * 10 ** -3, 2)
@@ -374,8 +334,9 @@ class serialInterface():
 
 
     def currentOut(self):
-        request_hexstring = '\x02\x48\x47\x43\x03\x44\x37\x0D'  # h02 h48 h47 h43 h03 h44 h37 h0D
-        ser.write(request_hexstring.encode('utf-8'))
+        request_hexstring = '024847430344370D'  # h02 h48 h47 h43 h03 h44 h37 h0D
+        bytestring = bytearray.fromhex(request_hexstring)
+        ser.write(bytestring)
         response_ascii_string = ser.read(12)
         output_current_hex = str(response_ascii_string)[9:13]
         output_current = round(int(output_current_hex, 16) * 4.980 * 10 ** -3, 2)
@@ -383,8 +344,9 @@ class serialInterface():
         time.sleep(2)
 
     def MPPCOUT(self):
-        request_hexstring = '\x02\x48\x47\x54\x03\x45\x38\x0D'  # h02 h48 h47 h54 h03 h45 h38 h0D
-        ser.write(request_hexstring.encode('utf-8'))
+        request_hexstring = '024847540345380D'  # h02 h48 h47 h54 h03 h45 h38 h0D
+        bytestring = bytearray.fromhex(request_hexstring)
+        ser.write(bytestring)
         response_ascii_string = ser.read(12)
         output_MPPCtemp_hex = str(response_ascii_string)[9:13]
         output_MPPCtemp = round((int(output_MPPCtemp_hex, 16) * 1.907 * 10 ** -5 - 1.035) / (-5.5 * 10 ** -3), 2)
@@ -392,37 +354,41 @@ class serialInterface():
         time.sleep(2)
 
     def turnvoltageOFF(self):
-        request_hexstring = '\x02\x48\x4F\x46\x03\x45\x32\x0D'  # h02 h48 h4F h46 h03 h45 h32 h0D
-        ser.write(request_hexstring.encode('utf-8'))
+        request_hexstring = '02484F460345320D'  # h02 h48 h4F h46 h03 h45 h32 h0D
+        bytestring = bytearray.fromhex(request_hexstring)
+        ser.write(bytestring)
         response_ascii_string = ser.read(12)
         print(response_ascii_string)
         print("High Voltage Output is OFF")
 
     def turnvoltageON(self):
-        request_hexstring = '\x02\x48\x4F\x4E\x03\x45\x41\x0D'  # h02 h48 h4F h4E h03 h45 h41 h0D
-        ser.write(request_hexstring.encode('utf-8'))
+        request_hexstring = '02484F4E0345410D'  # h02 h48 h4F h4E h03 h45 h41 h0D
+        bytestring = bytearray.fromhex(request_hexstring)
+        ser.write(bytestring)
         response_ascii_string = ser.read(12)
         print(response_ascii_string)
         print("High Voltage Output is ON")
 
     def resetPower(self):
-        request_hexstring = '\x02\x48\x52\x45\x03\x45\x34\x0D'  # h02 h48 h52 h45 h03 h45 h34 h0D
-        ser.write(request_hexstring.encode('utf-8'))
+        request_hexstring = '024852450345340D'  # h02 h48 h52 h45 h03 h45 h34 h0D
+        bytestring = bytearray.fromhex(request_hexstring)
+        ser.write(bytestring)
         response_ascii_string = ser.read(12)
         print(response_ascii_string)
         print("The Power Will Reset")
 
     def tempcompMode(self):
-        request_com = self.request_com
         answer = input("\nDo you want to enable or disable the temperature correction function? "
                        "(Type 1 to enable ""or Type 0 to disable)")
 
         if answer == '0':
-            request_hexstring = '\x02\x48\x43\x4D\x30\x03\x30\x44\x0D'  # h02 h48 h43 h4D h30 h03 h30 h44 h0D
-            ser.write(request_hexstring.encode('utf-8'))
+            request_hexstring = '0248434D300330440D'  # h02 h48 h43 h4D h30 h03 h30 h44 h0D
+            bytestring = bytearray.fromhex(request_hexstring)
+            ser.write(bytestring)
         if answer == '1':
-            request_hexstring = '\x02\x48\x43\x4D\x31\x03\x30\x45\x0D'  # h02 h48 h43 h4D h31 h03 h30 h45 h0D
-            ser.write(request_hexstring.encode('utf-8'))
+            request_hexstring = '0248434D310330450D'  # h02 h48 h43 h4D h31 h03 h30 h45 h0D
+            bytestring = bytearray.fromhex(request_hexstring)
+            ser.write(bytestring)
 
         response_ascii_string = str(ser.read(12))
         print(response_ascii_string)
@@ -442,12 +408,13 @@ class serialInterface():
         self.hexstring5 = ''
         self.hexsum5 = '0'
         for i in range(4):
-            self.hexstring5 += '\\x' + hex(ord(Vb_hex[i:i + 1]))[2:]
+            self.hexstring5 += hex(ord(Vb_hex[i:i + 1]))[2:]
             self.hexsum5 = hex(int(self.hexsum5, 16) + int(self.hexstring5[(len(self.hexstring5) - 2):], 16))
 
         data = [self.hexstring5, self.hexsum5]
         request_hexstring = self.encode(request_com, data)
-        ser.write(request_hexstring.encode('utf-8'))
+        bytestring = bytearray.fromhex(request_hexstring)
+        ser.write(bytestring)
         response_ascii_string = ser.read(8)
         print(response_ascii_string)
         time.sleep(2)
@@ -485,6 +452,9 @@ class serialInterface():
 
         if self.request_com == 'HCM':
             self.tempcompMode()
+
+        if self.request_com == 'HBV':
+            self.referencevoltageSetting()
 
     def run(self):
         while 1 > 0:

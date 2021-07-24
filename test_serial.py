@@ -44,8 +44,9 @@ while True:
         time.sleep(1)
 
     if request_com == 'HGV':
-        request_hexstring = b'\x02\x48\x47\x56\x03\x45\x41\x0D' #h02 h48 h47 h56 h03 h45 h41 h0DHR
-        ser.write(request_hexstring)
+        request_hexstring = '024847560345410D' #h02 h48 h47 h56 h03 h45 h41 h0DHR
+        bytestring = bytearray.fromhex(request_hexstring)
+        ser.write(bytestring)
         response_ascii_string = ser.read(12)
         output_voltage_hex = str(response_ascii_string)[9:13]
         output_voltage = round(int(output_voltage_hex, 16) * 1.812*10**-3, 2)
