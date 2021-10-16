@@ -328,9 +328,9 @@ class serialInterface():
         bytestring = bytearray.fromhex(request_hexstring)
         ser.write(bytestring)
         response_ascii_string = ser.read(12)
-        print 'response_ascii_string:',response_ascii_string
+        #print('response_ascii_string:',response_ascii_string)
         output_voltage_hex = str(response_ascii_string)[4:8]
-        print 'output_voltage_hex:',output_voltage_hex
+        #print('output_voltage_hex:',output_voltage_hex)
         output_voltage = round(int(output_voltage_hex, 16) * 1.812 * 10 ** -3, 2)
         print(str(output_voltage) + "V")
         time.sleep(0.2)
