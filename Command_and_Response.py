@@ -3,7 +3,7 @@ import random
 import time
 import serial
 
-ser = serial.Serial('COM4', baudrate=38400, bytesize=serial.EIGHTBITS, parity=serial.PARITY_EVEN,
+ser = serial.Serial('/dev/tty.usbserial-AR0JVORQ', baudrate=38400, bytesize=serial.EIGHTBITS, parity=serial.PARITY_EVEN,
                     stopbits=serial.STOPBITS_ONE, timeout=3)  # open serial port
 
 class serialInterface():
@@ -20,13 +20,14 @@ class serialInterface():
 
         print(tabulate(menu, headers=["\nNo.", "\nCommand Name", "\nFunction"]))
 
-        self.request_com = input("\nENTER THE DESIRED COMMAND")
-
+        self.request_com = raw_input("\nENTER THE DESIRED COMMAND")
+        print(self.request_com)
+        
     def set_values(self):
 
-        deltaPrime_T1 = float(input("\n Set a Δ\'T1 value (mV/°C^2)"))
+        deltaPrime_T1 = float(raw_input("\n Set a DeltaT1 value (mV/C^2)"))
         while abs(deltaPrime_T1) > 1.507:
-            deltaPrime_T1 = float(input("\nInvalid value, input another value"))
+            deltaPrime_T1 = float(raw_input("\nInvalid value, input another value"))
         deltaPrime_T1_dec = int(round(deltaPrime_T1 / (1.507 * 10 ** -3), 0))
         deltaPrime_T1_hex = hex(deltaPrime_T1_dec)[2:]
         if len(deltaPrime_T1_hex) < 4:
@@ -39,9 +40,9 @@ class serialInterface():
              self.hexstring1 += hex(ord(deltaPrime_T1_hex[i:i + 1]))[2:]
              self.hexsum1 = hex(int(self.hexsum1, 16) + int(self.hexstring1[(len(self.hexstring1)-2):], 16))
 
-        deltaPrime_T2 = float(input("\n Set a Δ\'T2 value (mV/°C^2)"))
+        deltaPrime_T2 = float(raw_input("\n Set a \Delta\'T2 value (mV/C^2)"))
         while abs(deltaPrime_T2) > 1.507:
-            deltaPrime_T2 = float(input("\nInvalid value, input another value"))
+            deltaPrime_T2 = float(raw_input("\nInvalid value, input another value"))
         deltaPrime_T2_dec = int(round(deltaPrime_T2 / (1.507 * 10 ** -3), 0))
         deltaPrime_T2_hex = hex(deltaPrime_T2_dec)[2:]
         if len(deltaPrime_T2_hex) < 4:
@@ -54,9 +55,9 @@ class serialInterface():
             self.hexstring2 += hex(ord(deltaPrime_T2_hex[i:i + 1]))[2:]
             self.hexsum2 = hex(int(self.hexsum2, 16) + int(self.hexstring2[(len(self.hexstring2) - 2):], 16))
 
-        delta_T1 = float(input("\n Set a ΔT1 value (mV/°C)"))
+        delta_T1 = float(raw_input("\n Set a \DeltaT1 value (mV/C)"))
         while delta_T1 < 0 or delta_T1 > 3424.20375:
-            delta_T1 = float(input("\nInvalid value, input another value"))
+            delta_T1 = float(raw_input("\nInvalid value, input another value"))
         delta_T1_dec = int(round(delta_T1 / (5.225 * 10 ** -2), 0))
         delta_T1_hex = hex(delta_T1_dec)[2:]
         if len(delta_T1_hex) < 4:
@@ -69,9 +70,9 @@ class serialInterface():
             self.hexstring3 += hex(ord(delta_T1_hex[i:i + 1]))[2:]
             self.hexsum3 = hex(int(self.hexsum3, 16) + int(self.hexstring3[(len(self.hexstring3) - 2):], 16))
 
-        delta_T2 = float(input("\n Set a ΔT2 value (mV/°C)"))
+        delta_T2 = float(raw_input("\n Set a \DeltaT2 value (mV/C)"))
         while delta_T2 < 0 or delta_T2 > 3424.20375:
-            delta_T2 = float(input("\nInvalid value, input another value"))
+            delta_T2 = float(raw_input("\nInvalid value, input another value"))
         delta_T2_dec = int(round(delta_T2 / (5.225 * 10 ** -2), 0))
         delta_T2_hex = hex(delta_T2_dec)[2:]
         if len(delta_T2_hex) < 4:
@@ -85,9 +86,9 @@ class serialInterface():
             self.hexsum4 = hex(int(self.hexsum4, 16) + int(self.hexstring4[(len(self.hexstring4) - 2):], 16))
 
 
-        Vb = float(input("\n Set a Vb value (V)"))
+        Vb = float(raw_input("\n Set a Vb value (V)"))
         while Vb < 0 or Vb > 118.74942:
-            Vb = float(input("\nInvalid value, input another value"))
+            Vb = float(raw_input("\nInvalid value, input another value"))
         Vb_dec = int(round(Vb / (1.812 * 10 ** -3), 0))
         Vb_hex = hex(Vb_dec)[2:]
         if len(Vb_hex) < 4:
@@ -100,9 +101,9 @@ class serialInterface():
             self.hexstring5 += hex(ord(Vb_hex[i:i + 1]))[2:]
             self.hexsum5 = hex(int(self.hexsum5, 16) + int(self.hexstring5[(len(self.hexstring5) - 2):], 16))
 
-        Tb = float(input("\n Set a Tb value (°C)"))
+        Tb = float(raw_input("\n Set a Tb value (C)"))
         while Tb < -39.0459 or Tb > 188.1818:
-            Tb = float(input("\nInvalid value, input another value"))
+            Tb = float(raw_input("\nInvalid value, input another value"))
         Tb_dec = int(round((1.035 + (Tb * -5.5 * 10 ** -3)) / (1.907 * 10 ** -5), 0))
         Tb_hex = hex(Tb_dec)[2:]
         if len(Tb_hex) < 4:
@@ -122,14 +123,14 @@ class serialInterface():
         print("\nThe Following Variables Have Been Set:")
 
         data = [
-            ['Δ\'T1', str(deltaPrime_T1) + ' mV/°C^2'], ['Δ\'T2', str(deltaPrime_T2) + ' mV/°C^2'],
-            ['ΔT1', str(delta_T1) + ' mV/°C'], ['ΔT2', str(delta_T2) + ' mV/°C'], ['Vb', str(Vb) + ' V'],
-            ['Tb', str(Tb) + ' °C']
+            ['Delta\'T1', str(deltaPrime_T1) + ' mV/C^2'], ['Delta\'T2', str(deltaPrime_T2) + ' mV/C^2'],
+            ['DeltaT1', str(delta_T1) + ' mV/C'], ['DeltaT2', str(delta_T2) + ' mV/C'], ['Vb', str(Vb) + ' V'],
+            ['Tb', str(Tb) + ' C']
         ]
 
         print(tabulate(data, headers=["\nVariable", "\nUser Input Value"]))
         time.sleep(2)
-        answer = input(
+        answer = raw_input(
             "\nDo these values make sense to you? (If not, type \"no\" to retype your values and if yes, type "
             "\"yes\" to confirm values)")
         if answer == "yes":
@@ -208,14 +209,14 @@ class serialInterface():
         Tb = round((Tb_dec * 1.907 * 10 ** -5 - 1.035) / (-5.5 * 10 ** -3), 2)
 
         readData = [
-            ['Δ\'T1', str(deltaPrimeT1) + ' mV/°C^2'], ['Δ\'T2', str(deltaPrimeT2) + ' mV/°C^2'],
-            ['ΔT1', str(deltaT1) + ' mV/°C'], ['ΔT2', str(deltaT2) + ' mV/°C'],
+            ['Delta\'T1', str(deltaPrimeT1) + ' mV/C^2'], ['Delta\'T2', str(deltaPrimeT2) + ' mV/C^2'],
+            ['DeltaT1', str(deltaT1) + ' mV/C'], ['DeltaT2', str(deltaT2) + ' mV/C'],
             ['Vb', str(Vb) + ' V'],
-            ['Tb', str(Tb) + ' °C']
+            ['Tb', str(Tb) + ' C']
         ]
         print(tabulate(readData, headers=["\nVariable", "\nExisting Value"]))
 
-        time.sleep(2)
+        time.sleep(0.2)
 
     def getmonitorinfoStatus(self):
         request_hexstring = '0248504F0345430D'
@@ -240,12 +241,12 @@ class serialInterface():
 
         readData = [
             ['Status', str(status_bin)], ['Output Voltage', str(output_voltage) + 'V'],
-            ['Output Current', str(output_current) + 'mA'], ['MPPC Temperature', str(MPPC_temp) + '°C'],
+            ['Output Current', str(output_current) + 'mA'], ['MPPC Temperature', str(MPPC_temp) + 'C'],
                    ]
 
         print(tabulate(readData, headers=["\nVariable", "\nExisting Value"]))
 
-        time.sleep(2)
+        time.sleep(0.2)
 
 
     def getStatus(self):
@@ -320,17 +321,19 @@ class serialInterface():
                       ]
 
         print(tabulate(status_table, headers=["\nBit.", "\nStatus", "\nValue", "\nDescription"]))
-        time.sleep(2)
+        time.sleep(0.2)
 
     def voltageOut(self):
         request_hexstring = '024847560345410D'  #h02 h48 h47 h56 h03 h45 h41 h0D
         bytestring = bytearray.fromhex(request_hexstring)
         ser.write(bytestring)
         response_ascii_string = ser.read(12)
-        output_voltage_hex = str(response_ascii_string)[9:13]
+        print 'response_ascii_string:',response_ascii_string
+        output_voltage_hex = str(response_ascii_string)[4:8]
+        print 'output_voltage_hex:',output_voltage_hex
         output_voltage = round(int(output_voltage_hex, 16) * 1.812 * 10 ** -3, 2)
         print(str(output_voltage) + "V")
-        time.sleep(2)
+        time.sleep(0.2)
 
 
     def currentOut(self):
@@ -341,7 +344,7 @@ class serialInterface():
         output_current_hex = str(response_ascii_string)[9:13]
         output_current = round(int(output_current_hex, 16) * 4.980 * 10 ** -3, 2)
         print(str(output_current) + "mA")
-        time.sleep(2)
+        time.sleep(0.2)
 
     def MPPCOUT(self):
         request_hexstring = '024847540345380D'  # h02 h48 h47 h54 h03 h45 h38 h0D
@@ -350,8 +353,8 @@ class serialInterface():
         response_ascii_string = ser.read(12)
         output_MPPCtemp_hex = str(response_ascii_string)[9:13]
         output_MPPCtemp = round((int(output_MPPCtemp_hex, 16) * 1.907 * 10 ** -5 - 1.035) / (-5.5 * 10 ** -3), 2)
-        print(str(output_MPPCtemp) + "°C")
-        time.sleep(2)
+        print(str(output_MPPCtemp) + "C")
+        time.sleep(0.2)
 
     def turnvoltageOFF(self):
         request_hexstring = '02484F460345320D'  # h02 h48 h4F h46 h03 h45 h32 h0D
@@ -378,7 +381,7 @@ class serialInterface():
         print("The Power Will Reset")
 
     def tempcompMode(self):
-        answer = input("\nDo you want to enable or disable the temperature correction function? "
+        answer = raw_input("\nDo you want to enable or disable the temperature correction function? "
                        "(Type 1 to enable ""or Type 0 to disable)")
 
         if answer == '0':
@@ -392,13 +395,13 @@ class serialInterface():
 
         response_ascii_string = str(ser.read(12))
         print(response_ascii_string)
-        time.sleep(2)
+        time.sleep(0.2)
 
     def referencevoltageSetting(self):
         request_com = self.request_com
-        Vb = float(input("\n Set a Vb value (V)"))
+        Vb = float(raw_input("\n Set a Vb value (V)"))
         while Vb < 0 or Vb > 118.74942:
-            Vb = float(input("\nInvalid value, input another value"))
+            Vb = float(raw_input("\nInvalid value, input another value"))
         Vb_dec = int(round(Vb / (1.812 * 10 ** -3), 0))
         Vb_hex = hex(Vb_dec)[2:]
         if len(Vb_hex) < 4:
@@ -417,7 +420,7 @@ class serialInterface():
         ser.write(bytestring)
         response_ascii_string = ser.read(8)
         print(response_ascii_string)
-        time.sleep(2)
+        time.sleep(0.2)
 
     def commandsList(self):
         if self.request_com == 'HST':
