@@ -8,6 +8,8 @@ class serialInterface():
         self.ser = serial.Serial(path, baudrate=38400, bytesize=serial.EIGHTBITS, parity=serial.PARITY_EVEN,
                     stopbits=serial.STOPBITS_ONE, timeout=3)  # open serial port
         self.debug_=debug
+        self.request_com=""
+        
         ### CONSTANTS
         self.status_request_hexstring = '024847530345370D'    ## get status info
         self.read_comp_request_hexstring = '024852540346330D' ## get compensation params
@@ -18,7 +20,7 @@ class serialInterface():
         self.voff_request_hexstring = '02484F460345320D'      ## turn output voltage off
         self.von_request_hexstring = '02484F4E0345410D'       ## turn output voltage on
         self.reset_request_hexstring = '024852450345340D'     ## reset power supply
-
+        
 
     def debug(self,who,info):
         if self.debug_ :
@@ -152,7 +154,6 @@ class serialInterface():
         ]
 
         print(tabulate(data, headers=["\nVariable", "\nUser Input Value"]))
-        time.sleep(0.2)
         answer = input(
             "\nDo these values make sense to you? (If not, type \"no\" to retype your values and if yes, type "
             "\"yes\" to confirm values)")
@@ -203,7 +204,6 @@ class serialInterface():
         self.ser.write(bytestring)
         response_ascii_string = self.ser.read(8)
         self.debug('setCompensationParams',response_ascii_string)
-        time.sleep(0.2)
 
     def readsixVariables(self):
         bytestring = bytearray.fromhex(self.read_comp_request_hexstring)
@@ -241,12 +241,11 @@ class serialInterface():
             ['Tb', str(Tb) + ' C']
         ]
         print(tabulate(readData, headers=["\nVariable", "\nExisting Value"]))
-
-        time.sleep(0.2)
-
+        return deltaPrimeT1,deltaPrimeT2,deltaT1,deltaT2,Vb,Tb
+        
     def getmonitorinfoStatus(self):
         bytestring = bytearray.fromhex(self.mon_info_request_hexstring)
-        self.ser.write(request_hexstring)
+        self.ser.write(bytestring)
         response_ascii_string = str(self.ser.read(32))
         status_val = response_ascii_string[9:13]
         output_voltage_val = response_ascii_string[17:21]
@@ -270,9 +269,7 @@ class serialInterface():
                    ]
 
         print(tabulate(readData, headers=["\nVariable", "\nExisting Value"]))
-
-        time.sleep(0.2)
-
+        return status_bin,output_voltage,output_current,MPPC_temp
 
     def formatStatus(self,status):
 
@@ -339,8 +336,6 @@ class serialInterface():
                       ]
 
         print(tabulate(status_table, headers=["\nBit.", "\nStatus", "\nValue", "\nDescription"]))
-        time.sleep(0.2)
-
         
     def getStatus(self):
         bytestring = bytearray.fromhex(self.status_request_hexstring)
@@ -361,7 +356,7 @@ class serialInterface():
         output_voltage_ing = int(response_ascii_string[4:8],16)
         #self.debug('voltageOut','output_voltage_hex: '+output_voltage_ing)
         output_voltage = round(output_voltage_ing * 1.812 * 10 ** -3, 2)
-        self.debug('voltageOut',(str(output_voltage) + "V")
+        self.debug('voltageOut',(str(output_voltage) + "V"))
         return output_voltage
 
     def currentOut(self):
@@ -418,7 +413,6 @@ class serialInterface():
 
         response_ascii_string = str(self.ser.read(12))
         print(response_ascii_string)
-        time.sleep(0.2)
 
     def queryReferenceVoltage(self):
         Vb = float(input("\n Set a Vb value (V)"))
@@ -427,7 +421,7 @@ class serialInterface():
         return Vb
         
     def referencevoltageSetting(self,Vb):
-        request_com = self.request_com
+        request_com = "HBV"
         Vb_dec = int(round(Vb / (1.812 * 10 ** -3), 0))
         Vb_hex = hex(Vb_dec)[2:]
         if len(Vb_hex) < 4:
@@ -446,7 +440,6 @@ class serialInterface():
         self.ser.write(bytestring)
         response_ascii_string = self.ser.read(8)
         print(response_ascii_string)
-        time.sleep(0.2)
 
     def commandsList(self):
         if self.request_com == 'HST':
